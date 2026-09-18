@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفتر الأسعار</title>
+<style>
+  :root{
+    --bg:#f7f7f8; --card:#ffffff; --text:#1a1a1a; --muted:#6b6b6b;
+    --accent:#2563eb; --accent-dark:#1d4ed8; --danger:#dc2626; --border:#e5e5e5;
+    --done:#16a34a; --done-dark:#15803d;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121212; --card:#1e1e1e; --text:#f0f0f0; --muted:#a0a0a0;
+      --accent:#3b82f6; --accent-dark:#2563eb; --danger:#f87171; --border:#333;
+      --done:#22c55e; --done-dark:#16a34a;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121212; --card:#1e1e1e; --text:#f0f0f0; --muted:#a0a0a0;
+    --accent:#3b82f6; --accent-dark:#2563eb; --danger:#f87171; --border:#333;
+    --done:#22c55e; --done-dark:#16a34a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"Segoe UI", Tahoma, Arial, sans-serif;
+    min-height:100vh; padding:16px;
+  }
+  .wrap{max-width:520px; margin:0 auto;}
+  h1{font-size:1.4rem; text-align:center; margin:8px 0 4px;}
+  .subtitle{text-align:center; color:var(--muted); font-size:0.85rem; margin-bottom:14px;}
+  details.help{
+    background:var(--card); border:1px solid var(--border); border-radius:12px;
+    padding:10px 14px; margin-bottom:16px; font-size:0.88rem; color:var(--text);
+  }
+  details.help summary{cursor:pointer; font-weight:600; color:var(--accent);}
+  details.help ul{margin:10px 0 0; padding-inline-start:20px; line-height:1.8;}
+  .card{
+    background:var(--card); border:1px solid var(--border);
+    border-radius:14px; padding:16px; margin-bottom:16px;
+  }
+  .card.editing{border-color:var(--accent); border-width:2px;}
+  .edit-banner{
+    background:var(--accent); color:#fff; border-radius:10px;
+    padding:8px 12px; font-size:0.85rem; margin-bottom:12px; text-align:center;
+  }
+  label{display:block; font-size:0.9rem; color:var(--muted); margin-bottom:4px;}
+  input[type="text"], input[type="number"]{
+    width:100%; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--border); background:var(--bg); color:var(--text);
+    font-size:1rem; margin-bottom:12px;
+  }
+  .photo-row{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .photo-btn{
+    display:inline-block; flex:0 0 auto; width:auto; background:var(--bg); color:var(--text);
+    border:1px dashed var(--border); padding:10px 14px; border-radius:10px;
+    font-size:0.9rem; cursor:pointer; text-align:center;
+  }
+  .visually-hidden-file{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+  .photo-preview-wrap{position:relative; display:inline-block;}
+  .photo-preview{
+    width:52px; height:52px; object-fit:cover; border-radius:10px;
+    border:1px solid var(--border);
+  }
+  .photo-remove{
+    position:absolute; top:-6px; left:-6px; background:var(--danger); color:#fff;
+    border:none; border-radius:50%; width:20px; height:20px; font-size:0.8rem;
+    line-height:20px; padding:0; cursor:pointer;
+  }
+  button.primary{
+    width:100%; padding:12px; border:none; border-radius:10px;
+    background:var(--accent); color:#fff; font-size:1rem; font-weight:600;
+    cursor:pointer;
+  }
+  button.primary:active{background:var(--accent-dark);}
+  button.secondary{
+    width:100%; padding:10px; border:1px solid var(--border); border-radius:10px;
+    background:var(--card); color:var(--text); font-size:0.92rem; font-weight:600;
+    cursor:pointer; margin-bottom:10px;
+  }
+  #cancelEditBtn{margin-top:8px; margin-bottom:0;}
+  .total-card{
+    display:none; background:var(--card); border:1px solid var(--accent);
+    border-radius:12px; padding:12px 16px; margin-bottom:10px;
+    text-align:center; font-size:1.05rem; font-weight:700; color:var(--accent);
+  }
+  .item{
+    display:flex; justify-content:space-between; align-items:center;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:12px; padding:12px 14px; margin-bottom:10px; gap:10px;
+  }
+  .item.is-editing{border-color:var(--accent); border-width:2px;}
+  .item-left{display:flex; align-items:center; gap:10px; min-width:0;}
+  .item-thumb{
+    width:46px; height:46px; object-fit:cover; border-radius:8px;
+    border:1px solid var(--border); flex-shrink:0; cursor:pointer;
+  }
+  .item-info .name{font-weight:600; font-size:1rem; overflow-wrap:anywhere;}
+  .item-info .price{color:var(--accent); font-size:0.95rem; margin-top:2px;}
+  .item-info .time{color:var(--muted); font-size:0.75rem; margin-top:2px;}
+  .item-actions{display:flex; gap:6px; flex-shrink:0;}
+  .edit-btn{
+    background:var(--bg); color:var(--accent); border:1px solid var(--accent);
+    border-radius:8px; font-size:0.85rem; padding:8px 10px; cursor:pointer;
+  }
+  .edit-btn:active{background:var(--accent); color:#fff;}
+  .done-btn{
+    background:var(--done); color:#fff; border:none; border-radius:8px;
+    font-size:0.85rem; padding:8px 10px; cursor:pointer; white-space:nowrap;
+  }
+  .done-btn:active{background:var(--done-dark);}
+  .empty{text-align:center; color:var(--muted); padding:20px 0;}
+  .count{text-align:center; color:var(--muted); font-size:0.85rem; margin-bottom:10px;}
+  .lightbox{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+    align-items:center; justify-content:center; z-index:1000; padding:20px;
+  }
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:100%; max-height:100%; border-radius:10px;}
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+    background:var(--text); color:var(--bg); padding:10px 18px; border-radius:20px;
+    font-size:0.9rem; opacity:0; pointer-events:none; transition:opacity 0.25s;
+    z-index:1100;
+  }
+  .toast.show{opacity:1;}
+  .tabs{
+    display:flex; gap:4px; margin-bottom:16px;
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:4px;
+  }
+  .tab-btn{
+    flex:1; padding:10px; border:none; border-radius:9px; background:transparent;
+    color:var(--muted); font-size:0.9rem; font-weight:600; cursor:pointer;
+  }
+  .tab-btn.active{background:var(--accent); color:#fff;}
+  .calc-warning{
+    display:none; background:rgba(220,38,38,0.12); border:1px solid var(--danger);
+    color:var(--danger); border-radius:12px; padding:12px 16px; margin-bottom:16px;
+    font-size:0.9rem; text-align:center; line-height:1.6;
+  }
+  .calc-results{
+    display:none; background:var(--card); border:1px solid var(--accent);
+    border-radius:14px; padding:6px 16px; margin-bottom:16px;
+  }
+  .calc-result-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--border);
+  }
+  .calc-result-row:last-child{border-bottom:none;}
+  .calc-label{color:var(--muted); font-size:0.92rem;}
+  .calc-value{color:var(--accent); font-size:1.15rem; font-weight:700;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧾 دفتر الأسعار</h1>
+  <div class="subtitle">لتسجيل المواد التي لا يوجد لها سعر في نظام الكاشير</div>
+
+  <div class="tabs">
+    <button type="button" class="tab-btn active" id="tabPriceLog" onclick="switchTab('priceLog')">🧾 دفتر الأسعار</button>
+    <button type="button" class="tab-btn" id="tabCalculator" onclick="switchTab('calculator')">🧮 حاسبة سعر القطعة</button>
+  </div>
+
+  <div id="viewPriceLog">
+  <details class="help">
+    <summary>طريقة الاستخدام</summary>
+    <ul>
+      <li>تكتب اسم المادة وسعرها في الحقلين، وتضغط "إضافة"</li>
+      <li>المادة تظهر بشكل بطاقة سعر في القائمة، مع وقت إضافتها</li>
+      <li>بعد ما تدخلها في نظام الكاشير، تضغط "✓ تمت" فتختفي من القائمة</li>
+      <li>زر "✏️" بجانب أي مادة يفتح بياناتها في الأعلى لتعديل الاسم أو السعر أو الصورة، وتضغط "💾 حفظ التعديل" لتأكيد التغيير أو "إلغاء" للتراجع</li>
+      <li>فوق القائمة يظهر المجموع الكلي لأسعار كل المواد المضافة حاليًا</li>
+      <li>زر "نسخ القائمة" ينسخ كل المواد المتبقية كنص، تقدر تلصقه بأي مكان (رسالة واتساب لنفسك مثلاً) كنسخة احتياطية</li>
+      <li>زر "📷 إضافة صورة" يفتح الكاميرا أو معرض الصور مباشرة، وتظهر معاينة صغيرة للصورة قبل الإضافة، وتقدر تحذفها بالضغط على ×</li>
+      <li>بعد الإضافة، الصورة تظهر كصورة مصغّرة بجانب اسم المادة، وإذا ضغطت عليها تتوسّع لعرض أكبر</li>
+      <li>الصورة اختيارية تمامًا، تقدر تضيف مادة بدون صورة زي السابق</li>
+      <li>الصور تُضغط تلقائيًا قبل الحفظ حتى لا تمتلئ مساحة التخزين في المتصفح بسرعة؛ وإذا صارت المساحة ممتلئة فعلاً، التطبيق يحفظ المادة والسعر على الأقل وينبّهك أن الصورة ما انحفظت</li>
+      <li>هي صفحة ويب واحدة تحفظ كل البيانات مباشرة داخل متصفحك على نفس الجهاز</li>
+    </ul>
+  </details>
+
+  <div class="card" id="formCard">
+    <div class="edit-banner" id="editBanner" style="display:none;">وضع التعديل — تعدّل بيانات مادة موجودة</div>
+    <label for="name">اسم المادة</label>
+    <input id="name" type="text" placeholder="مثال: عصير برتقال ١ لتر">
+    <label for="price">السعر</label>
+    <input id="price" type="number" inputmode="decimal" placeholder="مثال: 1500">
+
+    <label>صورة (اختياري)</label>
+    <div class="photo-row" id="photoRow">
+      <label class="photo-btn" id="photoBtn" for="photoInput">📷 إضافة صورة</label>
+      <input type="file" id="photoInput" accept="image/*" class="visually-hidden-file" onchange="handlePhotoSelect(event)">
+    </div>
+
+    <button class="primary" id="submitBtn" onclick="addItem()">إضافة</button>
+    <button class="secondary" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">إلغاء التعديل</button>
+  </div>
+
+  <button class="secondary" id="copyBtn" onclick="copyList()">📋 نسخ القائمة</button>
+
+  <div class="total-card" id="totalCard"></div>
+  <div class="count" id="count"></div>
+  <div id="list"></div>
+  </div>
+
+  <div id="viewCalculator" style="display:none;">
+    <div class="card">
+      <label for="calcTotalItems">العدد الكلي للقطع</label>
+      <input id="calcTotalItems" type="number" inputmode="decimal" placeholder="مثال: 180">
+
+      <label for="calcTotalPrice">سعر الشراء الكلي لجميع الصناديق</label>
+      <input id="calcTotalPrice" type="number" inputmode="decimal" placeholder="مثال: 45000">
+
+      <label for="calcBoxes">عدد الصناديق المشتراة</label>
+      <input id="calcBoxes" type="number" inputmode="decimal" placeholder="مثال: 6">
+
+      <label for="calcItemsPerBox">عدد القطع في الصندوق الواحد</label>
+      <input id="calcItemsPerBox" type="number" inputmode="decimal" placeholder="مثال: 30">
+
+      <button class="primary" onclick="calculatePrices()">احسب</button>
+    </div>
+
+    <div class="calc-warning" id="calcWarning"></div>
+
+    <div class="calc-results" id="calcResults">
+      <div class="calc-result-row">
+        <span class="calc-label">سعر الصندوق الواحد</span>
+        <span class="calc-value" id="resultPricePerBox">-</span>
+      </div>
+      <div class="calc-result-row">
+        <span class="calc-label">سعر القطعة الواحدة</span>
+        <span class="calc-value" id="resultPricePerItem">-</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightboxImg" src="" alt="صورة المادة">
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = "unpriced_items_v2";
+let pendingPhoto = null; // base64 string or null
+let editingId = null; // ts of item being edited, or null
+
+function loadItems(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function saveItems(items){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function showToast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function escapeHtml(str){
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatNumber(num){
+  const rounded = Math.round(num * 100) / 100;
+  const parts = rounded.toString().split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
+
+function render(){
+  const items = loadItems().sort((a,b) => b.ts - a.ts);
+  const list = document.getElementById("list");
+  const count = document.getElementById("count");
+  const totalCard = document.getElementById("totalCard");
+
+  count.textContent = items.length ? `عدد المواد: ${items.length}` : "";
+
+  const total = items.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+  if(items.length){
+    totalCard.style.display = "block";
+    totalCard.textContent = `💰 المجموع الكلي: ${formatNumber(total)}`;
+  }else{
+    totalCard.style.display = "none";
+  }
+
+  if(items.length === 0){
+    list.innerHTML = '<div class="empty">لا توجد مواد مضافة بعد</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(item => {
+    const d = new Date(item.ts);
+    const timeStr = d.toLocaleString("ar", {hour:"2-digit", minute:"2-digit", day:"2-digit", month:"2-digit"});
+    const thumb = item.photo
+      ? `<img class="item-thumb" src="${item.photo}" onclick="openLightbox('${item.ts}')" alt="صورة المادة">`
+      : "";
+    const isEditing = editingId === item.ts;
+    return `
+      <div class="item${isEditing ? ' is-editing' : ''}">
+        <div class="item-left">
+          ${thumb}
+          <div class="item-info">
+            <div class="name">${escapeHtml(item.name)}</div>
+            <div class="price">${escapeHtml(item.price)}</div>
+            <div class="time">${timeStr}</div>
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="edit-btn" onclick="editItem(${item.ts})" title="تعديل">✏️</button>
+          <button class="done-btn" onclick="removeItem(${item.ts})">✓ تمت</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function openLightbox(ts){
+  const items = loadItems();
+  const item = items.find(i => String(i.ts) === String(ts));
+  if(!item || !item.photo) return;
+  document.getElementById("lightboxImg").src = item.photo;
+  document.getElementById("lightbox").classList.add("open");
+}
+
+function closeLightbox(){
+  document.getElementById("lightbox").classList.remove("open");
+}
+
+function handlePhotoSelect(event){
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      // compress: resize to max 500px width, JPEG quality 0.6
+      const maxW = 500;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      pendingPhoto = canvas.toDataURL("image/jpeg", 0.6);
+      renderPhotoPreview();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  event.target.value = "";
+}
+
+function renderPhotoPreview(){
+  const row = document.getElementById("photoRow");
+  if(pendingPhoto){
+    row.innerHTML = `
+      <div class="photo-preview-wrap">
+        <img class="photo-preview" src="${pendingPhoto}" alt="معاينة">
+        <button type="button" class="photo-remove" onclick="clearPendingPhoto()">×</button>
+      </div>
+      <label class="photo-btn" for="photoInput">تغيير الصورة</label>
+      <input type="file" id="photoInput" accept="image/*" class="visually-hidden-file" onchange="handlePhotoSelect(event)">
+    `;
+  }else{
+    row.innerHTML = `
+      <label class="photo-btn" id="photoBtn" for="photoInput">📷 إضافة صورة</label>
+      <input type="file" id="photoInput" accept="image/*" class="visually-hidden-file" onchange="handlePhotoSelect(event)">
+    `;
+  }
+}
+
+function clearPendingPhoto(){
+  pendingPhoto = null;
+  renderPhotoPreview();
+}
+
+function updateFormMode(){
+  const submitBtn = document.getElementById("submitBtn");
+  const cancelBtn = document.getElementById("cancelEditBtn");
+  const banner = document.getElementById("editBanner");
+  const formCard = document.getElementById("formCard");
+  if(editingId){
+    submitBtn.textContent = "💾 حفظ التعديل";
+    cancelBtn.style.display = "block";
+    banner.style.display = "block";
+    formCard.classList.add("editing");
+  }else{
+    submitBtn.textContent = "إضافة";
+    cancelBtn.style.display = "none";
+    banner.style.display = "none";
+    formCard.classList.remove("editing");
+  }
+}
+
+function editItem(ts){
+  const items = loadItems();
+  const item = items.find(i => i.ts === ts);
+  if(!item) return;
+
+  document.getElementById("name").value = item.name;
+  document.getElementById("price").value = item.price;
+  pendingPhoto = item.photo || null;
+  renderPhotoPreview();
+  editingId = ts;
+  updateFormMode();
+  render();
+
+  document.getElementById("formCard").scrollIntoView({behavior:"smooth", block:"start"});
+  document.getElementById("name").focus();
+}
+
+function cancelEdit(){
+  editingId = null;
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+  pendingPhoto = null;
+  renderPhotoPreview();
+  updateFormMode();
+  render();
+}
+
+function addItem(){
+  const nameInput = document.getElementById("name");
+  const priceInput = document.getElementById("price");
+  const name = nameInput.value.trim();
+  const price = priceInput.value.trim();
+
+  if(!name || !price){
+    alert("الرجاء إدخال اسم المادة والسعر.");
+    return;
+  }
+
+  let items = loadItems();
+
+  if(editingId){
+    const idx = items.findIndex(i => i.ts === editingId);
+    if(idx === -1){
+      showToast("المادة لم تعد موجودة");
+      editingId = null;
+      updateFormMode();
+      nameInput.value = "";
+      priceInput.value = "";
+      pendingPhoto = null;
+      renderPhotoPreview();
+      render();
+      return;
+    }
+    items[idx].name = name;
+    items[idx].price = price;
+    items[idx].photo = pendingPhoto;
+
+    let ok = saveItems(items);
+    if(!ok && pendingPhoto){
+      items[idx].photo = null;
+      ok = saveItems(items);
+      if(ok) showToast("تم الحفظ، لكن الصورة لم تُحفظ (المساحة ممتلئة)");
+    }
+    if(!ok){
+      alert("تعذر حفظ التعديل، مساحة التخزين ممتلئة على هذا الجهاز.");
+      return;
+    }
+    if(ok) showToast("تم تعديل المادة");
+    editingId = null;
+  }else{
+    const newItem = { name, price, ts: Date.now(), photo: pendingPhoto };
+    items.push(newItem);
+    let ok = saveItems(items);
+    if(!ok && pendingPhoto){
+      newItem.photo = null;
+      ok = saveItems(items);
+      if(ok){
+        showToast("تم الحفظ، لكن الصورة لم تُحفظ (المساحة ممتلئة)");
+      }
+    }
+    if(!ok){
+      alert("تعذر حفظ البيانات، مساحة التخزين ممتلئة على هذا الجهاز.");
+      return;
+    }
+  }
+
+  nameInput.value = "";
+  priceInput.value = "";
+  pendingPhoto = null;
+  renderPhotoPreview();
+  updateFormMode();
+  nameInput.focus();
+  render();
+}
+
+function removeItem(ts){
+  let items = loadItems();
+  items = items.filter(item => item.ts !== ts);
+  saveItems(items);
+  if(editingId === ts){
+    editingId = null;
+    updateFormMode();
+    document.getElementById("name").value = "";
+    document.getElementById("price").value = "";
+    pendingPhoto = null;
+    renderPhotoPreview();
+  }
+  render();
+}
+
+function copyList(){
+  const items = loadItems().sort((a,b) => b.ts - a.ts);
+  if(items.length === 0){
+    showToast("القائمة فارغة");
+    return;
+  }
+  const text = items.map(i => `${i.name} - ${i.price}`).join("\n");
+
+  function fallbackCopy(txt){
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("تم نسخ القائمة");
+    }).catch(() => {
+      fallbackCopy(text);
+      showToast("تم نسخ القائمة");
+    });
+  }else{
+    fallbackCopy(text);
+    showToast("تم نسخ القائمة");
+  }
+}
+
+document.getElementById("price").addEventListener("keydown", function(e){
+  if(e.key === "Enter") addItem();
+});
+document.getElementById("name").addEventListener("keydown", function(e){
+  if(e.key === "Enter") document.getElementById("price").focus();
+});
+
+function switchTab(tab){
+  const viewPriceLog = document.getElementById("viewPriceLog");
+  const viewCalculator = document.getElementById("viewCalculator");
+  const tabPriceLog = document.getElementById("tabPriceLog");
+  const tabCalculator = document.getElementById("tabCalculator");
+
+  if(tab === "calculator"){
+    viewPriceLog.style.display = "none";
+    viewCalculator.style.display = "block";
+    tabPriceLog.classList.remove("active");
+    tabCalculator.classList.add("active");
+  }else{
+    viewPriceLog.style.display = "block";
+    viewCalculator.style.display = "none";
+    tabPriceLog.classList.add("active");
+    tabCalculator.classList.remove("active");
+  }
+}
+
+function calculatePrices(){
+  const totalItems = parseFloat(document.getElementById("calcTotalItems").value);
+  const totalPrice = parseFloat(document.getElementById("calcTotalPrice").value);
+  const boxes = parseFloat(document.getElementById("calcBoxes").value);
+  const itemsPerBox = parseFloat(document.getElementById("calcItemsPerBox").value);
+
+  const warning = document.getElementById("calcWarning");
+  const results = document.getElementById("calcResults");
+
+  if(!totalItems || !totalPrice || !boxes || !itemsPerBox ||
+     totalItems <= 0 || totalPrice <= 0 || boxes <= 0 || itemsPerBox <= 0){
+    alert("الرجاء تعبئة الحقول الأربعة بأرقام صحيحة أكبر من صفر.");
+    return;
+  }
+
+  const pricePerBox = totalPrice / boxes;
+  const pricePerItem = totalPrice / totalItems;
+  const calculatedTotalItems = boxes * itemsPerBox;
+
+  document.getElementById("resultPricePerBox").textContent = formatNumber(pricePerBox);
+  document.getElementById("resultPricePerItem").textContent = formatNumber(pricePerItem);
+  results.style.display = "block";
+
+  if(Math.abs(calculatedTotalItems - totalItems) > 0.001){
+    warning.textContent = `⚠️ الأعداد غير متطابقة: عدد الصناديق × عدد القطع بالصندوق = ${formatNumber(calculatedTotalItems)}، بينما العدد الكلي الذي أدخلته = ${formatNumber(totalItems)}`;
+    warning.style.display = "block";
+  }else{
+    warning.style.display = "none";
+  }
+}
+
+["calcTotalItems","calcTotalPrice","calcBoxes","calcItemsPerBox"].forEach(id => {
+  document.getElementById(id).addEventListener("keydown", function(e){
+    if(e.key === "Enter") calculatePrices();
+  });
+});
+
+render();
+</script>
+</body>
+</html>
