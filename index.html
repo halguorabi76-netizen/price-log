@@ -210,8 +210,6 @@
 
   <div id="viewCalculator" style="display:none;">
     <div class="card">
-      <label for="calcTotalItems">العدد الكلي للقطع</label>
-      <input id="calcTotalItems" type="number" inputmode="decimal" placeholder="مثال: 180">
 
       <label for="calcTotalPrice">سعر الشراء الكلي لجميع الصناديق</label>
       <input id="calcTotalPrice" type="number" inputmode="decimal" placeholder="مثال: 45000">
@@ -584,37 +582,29 @@ function switchTab(tab){
 }
 
 function calculatePrices(){
-  const totalItems = parseFloat(document.getElementById("calcTotalItems").value);
   const totalPrice = parseFloat(document.getElementById("calcTotalPrice").value);
   const boxes = parseFloat(document.getElementById("calcBoxes").value);
   const itemsPerBox = parseFloat(document.getElementById("calcItemsPerBox").value);
+  const totalItems = boxes * itemsPerBox;
 
   const warning = document.getElementById("calcWarning");
   const results = document.getElementById("calcResults");
 
-  if(!totalItems || !totalPrice || !boxes || !itemsPerBox ||
-     totalItems <= 0 || totalPrice <= 0 || boxes <= 0 || itemsPerBox <= 0){
-    alert("الرجاء تعبئة الحقول الأربعة بأرقام صحيحة أكبر من صفر.");
+  if(!totalPrice  !boxes  !itemsPerBox ||
+   totalPrice <= 0  boxes <= 0  itemsPerBox <= 0){
+    alert("الرجاء تعبئة الحقول الثلاثة بأرقام صحيحة أكبر من صفر.");
     return;
   }
 
   const pricePerBox = totalPrice / boxes;
   const pricePerItem = totalPrice / totalItems;
-  const calculatedTotalItems = boxes * itemsPerBox;
 
   document.getElementById("resultPricePerBox").textContent = formatNumber(pricePerBox);
   document.getElementById("resultPricePerItem").textContent = formatNumber(pricePerItem);
   results.style.display = "block";
-
-  if(Math.abs(calculatedTotalItems - totalItems) > 0.001){
-    warning.textContent = `⚠️ الأعداد غير متطابقة: عدد الصناديق × عدد القطع بالصندوق = ${formatNumber(calculatedTotalItems)}، بينما العدد الكلي الذي أدخلته = ${formatNumber(totalItems)}`;
-    warning.style.display = "block";
-  }else{
-    warning.style.display = "none";
-  }
 }
 
-["calcTotalItems","calcTotalPrice","calcBoxes","calcItemsPerBox"].forEach(id => {
+["calcTotalPrice","calcBoxes","calcItemsPerBox"].forEach(id => {
   document.getElementById(id).addEventListener("keydown", function(e){
     if(e.key === "Enter") calculatePrices();
   });
