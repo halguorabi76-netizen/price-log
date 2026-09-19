@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>حاسبة الكيلو</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =====================================================
+   أنماط الصفحة المستقلة فقط — لا تنسخها إلى موقعك الرئيسي
+   ===================================================== */
+body{
+  color-scheme:light;
+  margin:0;
+  background:#f4f5f7;
+  min-height:100vh;
+}
+
+/* =====================================================
+   أنماط الحاسبة — انسخ من هنا حتى نهاية وسم style
+   كل القواعد تبدأ بـ #kg-calc حتى لا تتعارض مع موقعك
+   ===================================================== */
+#kg-calc{
+  --kc-ink:#141414;
+  --kc-mute:#6b7280;
+  --kc-line:#e3e5e8;
+  --kc-soft:#eef5f1;
+  --kc-accent:#1f7a63;
+  --kc-danger:#b42318;
+
+  color-scheme:light;
+  direction:rtl;
+  text-align:right;
+  max-width:480px;
+  margin:0 auto;
+  padding:22px 16px 56px;
+  font-family:'Tajawal','Segoe UI',Tahoma,Arial,sans-serif;
+  color:var(--kc-ink);
+  line-height:1.5;
+}
+#kg-calc *{box-sizing:border-box}
+#kg-calc [hidden]{display:none !important}
+#kg-calc button{font:inherit;color:inherit;cursor:pointer}
+#kg-calc button:focus-visible,
+#kg-calc input:focus-visible{
+  outline:3px solid var(--kc-accent);
+  outline-offset:2px;
+}
+
+/* الأيقونات: خطوط سوداء ناعمة */
+#kg-calc .kc-ico{width:22px;height:22px;display:block;flex:none}
+
+/* العنوان */
+#kg-calc .kc-h{font-size:1.55rem;font-weight:800;margin:0 0 4px}
+#kg-calc .kc-sub{margin:0 0 22px;color:var(--kc-mute);font-size:.95rem}
+
+/* النموذج */
+#kg-calc .kc-lbl{display:block;font-weight:700;font-size:.92rem;margin:12px 0 6px}
+#kg-calc .kc-input{
+  width:100%;
+  height:52px;
+  padding:0 14px;
+  font:inherit;
+  font-size:1.1rem;
+  color:inherit;
+  background:#fff;
+  border:1.5px solid var(--kc-line);
+  border-radius:12px;
+}
+#kg-calc .kc-row2{display:flex;gap:10px}
+#kg-calc .kc-row2 .kc-input{flex:1;min-width:0}
+
+#kg-calc .kc-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  height:52px;
+  padding:0 20px;
+  border:1.5px solid var(--kc-ink);
+  border-radius:12px;
+  background:var(--kc-ink);
+  color:#fff;
+  font-weight:700;
+  font-size:1rem;
+}
+#kg-calc .kc-btn .kc-ico{width:20px;height:20px}
+#kg-calc .kc-btn-ghost{background:#fff;color:var(--kc-ink);border-color:var(--kc-line)}
+
+#kg-calc .kc-err{margin:10px 0 0;color:var(--kc-danger);font-size:.92rem;font-weight:700}
+
+/* لوحة القائمة */
+#kg-calc .kc-panel{
+  margin-top:28px;
+  background:#fff;
+  border:1px solid var(--kc-line);
+  border-radius:16px;
+  overflow:hidden;
+}
+#kg-calc .kc-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:10px 16px;
+  min-height:60px;
+}
+#kg-calc .kc-title{margin:0;font-size:1.1rem;font-weight:800}
+#kg-calc .kc-count{color:var(--kc-mute);font-weight:400}
+#kg-calc .kc-tools{display:flex;gap:8px}
+
+#kg-calc .kc-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  height:40px;
+  padding:0 14px;
+  background:#fff;
+  border:1.5px solid var(--kc-line);
+  border-radius:999px;
+  font-size:.9rem;
+  font-weight:700;
+}
+#kg-calc .kc-pill .kc-ico{width:18px;height:18px}
+#kg-calc .kc-pill:hover{border-color:var(--kc-ink)}
+
+#kg-calc .kc-opt{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:44px;
+  padding:0 16px;
+  border-top:1px solid var(--kc-line);
+  font-size:.92rem;
+  color:var(--kc-mute);
+  cursor:pointer;
+}
+#kg-calc .kc-opt input{width:20px;height:20px;accent-color:var(--kc-ink)}
+
+#kg-calc .kc-empty{
+  margin:0;
+  padding:30px 20px 34px;
+  border-top:1px solid var(--kc-line);
+  text-align:center;
+  color:var(--kc-mute);
+}
+/* المواد */
+#kg-calc .kc-list{list-style:none;margin:0;padding:0}
+#kg-calc .kc-item{border-top:1px solid var(--kc-line)}
+#kg-calc .kc-head{display:flex;align-items:center}
+#kg-calc .kc-toggle{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:68px;
+  padding:10px 12px;
+  background:none;
+  border:0;
+  text-align:right;
+}
+#kg-calc .kc-chev{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  flex:none;
+  transition:transform .2s ease;
+}
+#kg-calc .kc-toggle[aria-expanded="true"] .kc-chev{transform:rotate(180deg)}
+#kg-calc .kc-nm{display:flex;flex-direction:column;min-width:0}
+#kg-calc .kc-nm-t{font-weight:800;font-size:1.1rem;overflow-wrap:anywhere}
+#kg-calc .kc-nm-p{color:var(--kc-mute);font-size:.88rem}
+
+#kg-calc .kc-acts{display:flex;padding-inline-end:6px}
+#kg-calc .kc-ib{
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  background:none;
+  border:0;
+  border-radius:50%;
+}
+#kg-calc .kc-ib:hover{background:#f1f2f4}
+
+/* التفاصيل */
+#kg-calc .kc-detail{padding:2px 16px 18px}
+#kg-calc .kc-sec{font-size:.88rem;font-weight:800;color:var(--kc-mute);margin:12px 0 6px}
+#kg-calc .kc-plist{list-style:none;margin:0;padding:0}
+#kg-calc .kc-prow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  padding:8px 0;
+  border-bottom:1px solid var(--kc-line);
+}
+#kg-calc .kc-prow-l{font-weight:700}
+#kg-calc .kc-prow-l small{display:block;font-weight:400;color:var(--kc-mute);font-size:.82rem}
+#kg-calc .kc-prow-end{display:flex;align-items:center;gap:2px}
+#kg-calc .kc-prow-v{font-size:1.3rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+#kg-calc .kc-prow-v small{font-size:.82rem;font-weight:400;color:var(--kc-mute)}
+
+#kg-calc .kc-tiles{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+#kg-calc .kc-tile{position:relative;background:var(--kc-soft);border-radius:12px;padding:10px 14px}
+#kg-calc .kc-tile-a{font-size:.85rem;color:var(--kc-mute)}
+#kg-calc .kc-tile-g{font-size:1.55rem;font-weight:800;line-height:1.3;font-variant-numeric:tabular-nums}
+#kg-calc .kc-tile-g small{font-size:.85rem;font-weight:400;color:var(--kc-mute)}
+#kg-calc .kc-note{margin:10px 0 0;color:var(--kc-mute);font-size:.82rem}
+#kg-calc .kc-foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+/* وضع تعديل المادة */
+#kg-calc .kc-edit{padding:8px 16px 18px;background:#fafafa}
+#kg-calc .kc-edit-btns{display:flex;gap:8px;margin-top:14px}
+#kg-calc .kc-edit-btns .kc-btn{height:46px;flex:1}
+
+/* تعديل كل وزن وسعر وخانة */
+#kg-calc .kc-cib{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  flex:none;
+  background:none;
+  border:0;
+  border-radius:50%;
+  color:var(--kc-mute);
+}
+#kg-calc .kc-cib .kc-ico{width:18px;height:18px}
+#kg-calc .kc-cib:hover{background:rgba(0,0,0,.06);color:var(--kc-ink)}
+#kg-calc .kc-tile .kc-cib{position:absolute;top:4px;left:4px}
+
+#kg-calc .kc-tag{
+  display:inline-block;
+  margin-inline-start:6px;
+  padding:0 8px;
+  border-radius:999px;
+  background:#fdf1d6;
+  color:#7a5a00;
+  font-size:.72rem;
+  font-weight:700;
+  vertical-align:middle;
+}
+
+#kg-calc .kc-cedit{
+  display:block;
+  padding:12px;
+  border:1.5px solid var(--kc-line);
+  border-radius:12px;
+  background:#fafafa;
+}
+#kg-calc .kc-prow.kc-cedit{margin:6px 0}
+#kg-calc .kc-tile.kc-cedit{grid-column:1 / -1}
+#kg-calc .kc-cfields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#kg-calc .kc-cfields.kc-one{grid-template-columns:1fr}
+#kg-calc .kc-cfields label{display:block}
+#kg-calc .kc-clbl{display:block;font-size:.82rem;font-weight:700;color:var(--kc-mute);margin-bottom:4px}
+#kg-calc .kc-cfields .kc-input{height:46px;font-size:1.05rem}
+#kg-calc .kc-cbtns{display:flex;gap:8px;margin-top:10px}
+#kg-calc .kc-cbtns .kc-btn{height:42px;flex:1;font-size:.95rem}
+#kg-calc .kc-cedit .kc-note{margin-top:8px}
+/* تنبيه صغير */
+#kg-calc .kc-toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:10px 18px;
+  background:var(--kc-ink);
+  color:#fff;
+  border-radius:999px;
+  font-size:.92rem;
+  font-weight:700;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
+  z-index:50;
+}
+#kg-calc .kc-toast.kc-show{opacity:1}
+
+/* إبراز المادة التي أضفتها للتو */
+@keyframes kc-flash{from{background:#e2f0e9}to{background:transparent}}
+#kg-calc .kc-new{animation:kc-flash 1.4s ease-out}
+
+@media (prefers-reduced-motion:reduce){
+  #kg-calc .kc-new{animation:none}
+  #kg-calc .kc-chev,#kg-calc .kc-toast{transition:none}
+}
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     الحاسبة — انسخ من هنا حتى نهاية وسم script
+     ===================================================== -->
+<section id="kg-calc" aria-labelledby="kc-heading">
+
+  <!-- الأيقونات (تُنسخ مع الحاسبة) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="kc-i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="kc-i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="kc-i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></symbol>
+    <symbol id="kc-i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6M14 11v6"/></symbol>
+    <symbol id="kc-i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="kc-i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="kc-i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="kc-i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="kc-i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  </svg>
+
+  <h2 class="kc-h" id="kc-heading">حاسبة الكيلو</h2>
+  <p class="kc-sub">أضف المادة وسعر الكيلو، ثم افتح السهم لترى الأسعار والغرامات.</p>
+
+  <form class="kc-form" novalidate>
+    <label class="kc-lbl" for="kc-name">اسم المادة</label>
+    <input class="kc-input kc-name" id="kc-name" type="text" placeholder="مثال: حبة بيضاء" autocomplete="off">
+
+    <label class="kc-lbl" for="kc-price">سعر الكيلو (دينار عراقي)</label>
+    <div class="kc-row2">
+      <input class="kc-input kc-price" id="kc-price" type="text" inputmode="decimal" placeholder="مثال: 8000" autocomplete="off">
+      <button type="submit" class="kc-btn">
+        <svg class="kc-ico" aria-hidden="true"><use href="#kc-i-plus"></use></svg>
+        <span>إضافة</span>
+      </button>
+    </div>
+    <p class="kc-err" role="alert" hidden></p>
+  </form>
+<div class="kc-panel">
+    <div class="kc-bar">
+      <h3 class="kc-title">المواد <span class="kc-count"></span></h3>
+      <div class="kc-tools" hidden>
+        <button type="button" class="kc-pill" data-top="copy">
+          <svg class="kc-ico" aria-hidden="true"><use href="#kc-i-copy"></use></svg>
+          <span>نسخ</span>
+        </button>
+        <button type="button" class="kc-pill" data-top="wa">
+          <svg class="kc-ico" aria-hidden="true"><use href="#kc-i-send"></use></svg>
+          <span>واتساب</span>
+        </button>
+      </div>
+    </div>
+
+    <label class="kc-opt" hidden>
+      <input type="checkbox" class="kc-round">
+      <span>قرّب الأسعار لأقرب 250 دينار</span>
+    </label>
+
+    <p class="kc-empty">ما أضفت أي مادة بعد. اكتب الاسم وسعر الكيلو ثم اضغط إضافة.</p>
+    <ul class="kc-list"></ul>
+  </div>
+
+  <div class="kc-toast" role="status" aria-live="polite"></div>
+</section>
+
+<script>
+(function () {
+  var root = document.getElementById('kg-calc');
+  if (!root) return;
+
+  function $(sel) { return root.querySelector(sel); }
+
+  var KEY = 'kg-calc:v1';                        // مفتاح الحفظ في المتصفح
+  var DEF_ROWS  = [500, 250];                    // الأوزان الافتراضية غير الكيلو (غرام)
+  var DEF_TILES = [1000, 750, 500, 250];         // المبالغ الافتراضية (دينار)
+  var NAMES = { 1000: 'كيلو', 750: 'ثلاثة أرباع كيلو', 500: 'نصف كيلو', 250: 'ربع كيلو' };
+
+  var formEl   = $('.kc-form');
+  var nameEl   = $('.kc-name');
+  var priceEl  = $('.kc-price');
+  var errEl    = $('.kc-err');
+  var listEl   = $('.kc-list');
+  var emptyEl  = $('.kc-empty');
+  var countEl  = $('.kc-count');
+  var toolsEl  = $('.kc-tools');
+  var optEl    = $('.kc-opt');
+  var roundEl  = $('.kc-round');
+  var toastEl  = $('.kc-toast');
+  var panelEl  = $('.kc-panel');
+
+  var state = load();
+  var openIds = {};        // المواد المفتوحة
+  var editingId = null;    // المادة قيد التعديل (الاسم والسعر)
+  var editCell = null;     // وزن أو خانة قيد التعديل: { id, kind, i }
+  var flashId = null;      // المادة المضافة للتو
+
+  /* ---------- الحفظ والتحميل ---------- */
+  function normRows(x) {
+    return DEF_ROWS.map(function (def, i) {
+      var r = x && x[i];
+      return {
+        g: (r && typeof r.g === 'number' && r.g > 0) ? r.g : def,
+        p: (r && typeof r.p === 'number' && r.p > 0) ? r.p : null
+      };
+    });
+  }
+  function normTiles(x) {
+    return DEF_TILES.map(function (def, i) {
+      var t = x && x[i];
+      return {
+        a: (t && typeof t.a === 'number' && t.a > 0) ? t.a : def,
+        g: (t && typeof t.g === 'number' && t.g > 0) ? t.g : null
+      };
+    });
+  }
+  function load() {
+    try {
+      var d = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (d && Array.isArray(d.items)) {
+        return {
+          round: !!d.round,
+          items: d.items.filter(function (x) {
+            return x && typeof x.name === 'string' && typeof x.price === 'number' && x.price > 0 && x.id;
+          }).map(function (x) {
+            return {
+              id: String(x.id).replace(/[^a-z0-9]/gi, '') || uid(),
+              name: x.name,
+              price: x.price,
+              rows: normRows(x.rows),
+              tiles: normTiles(x.tiles)
+            };
+          })
+        };
+      }
+    } catch (e) {}
+    return { items: [], round: false };
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  /* ---------- أدوات ---------- */
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function fmt(n) {
+    return n.toLocaleString('en-US', { maximumFractionDigits: 2 });
+    }
+  function num(n) {                       // رقم بسيط لحقول الإدخال
+    return String(Math.round(n * 100) / 100);
+  }
+  // يقبل الأرقام العربية والفواصل والمسافات
+  function parsePrice(text) {
+    var s = String(text)
+      .replace(/[٠-٩]/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); })
+      .replace(/[۰-۹]/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); })
+      .replace(/[٬,\s]/g, '')
+      .replace('٫', '.');
+    var n = parseFloat(s);
+    return (isFinite(n) && n > 0) ? n : null;
+  }
+  function ico(name) {
+    return '<svg class="kc-ico" aria-hidden="true"><use href="#kc-i-' + name + '"></use></svg>';
+  }
+  function iconBtn(act, icon, label) {
+    return '<button type="button" class="kc-ib" data-act="' + act + '" aria-label="' + label + '" title="' + label + '">' + ico(icon) + '</button>';
+  }
+  function cellBtn(kind, i, label) {
+    return '<button type="button" class="kc-cib" data-act="cedit" data-cell="' + kind + '" data-i="' + i + '" aria-label="' + label + '" title="' + label + '">' + ico('edit') + '</button>';
+  }
+  function roundMoney(n) {
+    return state.round ? Math.round(n / 250) * 250 : n;
+  }
+  function wLabel(g) { return NAMES[g] || (fmt(g) + ' غرام'); }
+
+  var CBTNS =
+    '<div class="kc-cbtns">' +
+      '<button type="button" class="kc-btn" data-act="csave">' + ico('check') + '<span>حفظ</span></button>' +
+      '<button type="button" class="kc-btn kc-btn-ghost" data-act="ccancel">' + ico('x') + '<span>إلغاء</span></button>' +
+    '</div>';
+
+  /* ---------- الحساب ---------- */
+  function calcPrice(it, g) { return roundMoney(it.price * g / 1000); }
+  function calcGrams(it, a) { return Math.round(a / it.price * 1000); }
+
+  function calc(it) {
+    var rows = [{ i: 0, g: 1000, price: roundMoney(it.price), custom: false }];
+    it.rows.forEach(function (r, i) {
+      rows.push({
+        i: i + 1,
+        g: r.g,
+        price: r.p !== null ? r.p : calcPrice(it, r.g),
+        custom: r.p !== null || r.g !== DEF_ROWS[i]
+      });
+    });
+    var tiles = it.tiles.map(function (t, i) {
+      return {
+        i: i,
+        amount: t.a,
+        grams: t.g !== null ? t.g : calcGrams(it, t.a),
+        custom: t.g !== null || t.a !== DEF_TILES[i]
+      };
+    });
+    return { rows: rows, tiles: tiles };
+  }
+
+  /* ---------- النص المنسوخ ---------- */
+  function itemText(it) {
+    var c = calc(it);
+    var lines = [it.name];
+    c.rows.forEach(function (r) {
+      lines.push(wLabel(r.g) + (r.g !== 1000 && NAMES[r.g] ? ' (' + fmt(r.g) + ' غرام)' : '') + ': ' + fmt(r.price) + ' دينار');
+    });
+    c.tiles.forEach(function (t) {
+      lines.push('بـ ' + fmt(t.amount) + ' دينار: ' + fmt(t.grams) + ' غرام');
+    });
+    return lines.join('\n');
+  }
+  function listText() {
+    return 'قائمة الأسعار\n\n' + state.items.map(itemText).join('\n\n');
+  }
+
+  function copyText(text) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      return ok;
+    }
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(
+        function () { return true; },
+        function () { return fallback(); }
+      );
+    }
+    return Promise.resolve(fallback());
+  }
+
+  var toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('kc-show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove('kc-show'); }, 1800);
+  }
+  function doCopy(text) {
+    copyText(text).then(function (ok) { toast(ok ? 'تم النسخ' : 'تعذّر النسخ'); });
+  }
+
+  /* ---------- الرسم ---------- */
+  function isEditing(it, kind, i) {
+    return editCell && editCell.id === it.id && editCell.kind === kind && editCell.i === i;
+  }
+function rowHTML(it, r) {
+    if (isEditing(it, 'row', r.i)) return rowEditHTML(r);
+    return '<li class="kc-prow">' +
+      '<span class="kc-prow-l">' + wLabel(r.g) + (r.custom ? '<span class="kc-tag">معدّل</span>' : '') +
+        (NAMES[r.g] ? '<small>' + fmt(r.g) +
